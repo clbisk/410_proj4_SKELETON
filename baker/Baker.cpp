@@ -20,10 +20,11 @@ Baker::~Baker()
 //1 with 12 donuts, 1 with 1 donut
 void Baker::bake_and_box(ORDER &anOrder) {
 	for (int i = 0; i < anOrder.number_donuts; i++) {
-		if (i % 12 = 0) {
+		if (i % 12 == 0) {
 			Box newBox = Box();
 			anOrder.boxes.push_back(newBox);
 		}
+		Box currBox = anOrder.boxes.end();
 	}
 	
 }
@@ -39,6 +40,33 @@ void Baker::bake_and_box(ORDER &anOrder) {
 //when either order_in_Q.size() > 0 or b_WaiterIsFinished == true
 //hint: wait for something to be in order_in_Q or b_WaiterIsFinished == true
 void Baker::beBaker() {
-	
+	if (b_WaiterIsFinished) {
+		while (!order_in_Q.empty()) {	//as long as there are orders in order_in_Q
+			unique_lock<mutex> lck(mutex_order_outQ);
+			ORDER currOrder = order_in_Q.front();
+			//create box(es)
+			bake_and_box(currOrder);
+			//filled with number of donuts in the order
+			Box currBox = currOrder.boxes.front();
+			for (int i = 0; i < int(currOrder.number_donuts); i++) {
+				//if the below statement returns false the box is full
+				//and you need to change curr box
+				if (!currBox.addDonut(currBox.donuts.front()) {	//having trouble accessing donuts, it is private
+					//change curr box
+					//	currBox = boxes.get_next();
+				}
+				//this is where we will add the donuts to the box
+				//.......
+
+			}
+
+			//next add the order to the outVector
+			//	order_out_Vector.push_back(currOrder); ?? this isn't working
+
+			//remove the first ORDER in the in_Q
+			order_in_Q.pop();
+			
+		}
+	}
 	
 }
