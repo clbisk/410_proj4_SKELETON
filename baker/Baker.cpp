@@ -18,13 +18,32 @@ void Baker::bake_and_box(ORDER &anOrder) {
 	//bake the donuts: create a Donut object for number_donuts 
 	//(I recommend storing them in a vector for the next step)
 	//...
-	DONUT donut = DONUT();
+	int numDonuts = anOrder.number_donuts;
+	vector<DONUT> donuts(numDonuts);
+	
 	//box the donuts and add them to the order
 	for (int i = 0; i < anOrder.number_donuts; i += 12) {
+		int donutsLeft = (anOrder.number_donuts - i);
 		Box newBox = Box();
 
 		//add 12 Donuts, or until you are out of baked Donuts
 		//...
+		if (donutsLeft < 12) {
+			//add donutsLeft to the box
+			for (int j = 0; j < donutsLeft; i++) {
+				newBox.addDonut(donuts.front());
+				//remove the donut just added
+				donuts.erase(donuts.begin());
+			}
+		}
+		else {
+			//add 12 donuts to the box
+			for (int j = 0; j < 12; i++) {
+				newBox.addDonut(donuts.front());
+				//remove the donut just added 
+				donuts.erase(donuts.begin());
+			}
+		}
 
 		anOrder.boxes.push_back(newBox);
 	}
