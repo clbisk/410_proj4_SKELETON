@@ -30,7 +30,7 @@ void Baker::bake_and_box(ORDER &anOrder) {
 		//...
 		if (donutsLeft < 12) {
 			//add donutsLeft to the box
-			for (int j = 0; j < donutsLeft; i++) {
+			for (int j = 0; j < donutsLeft; j++) {
 				newBox.addDonut(donuts.front());
 				//remove the donut just added
 				donuts.erase(donuts.begin());
@@ -38,7 +38,7 @@ void Baker::bake_and_box(ORDER &anOrder) {
 		}
 		else {
 			//add 12 donuts to the box
-			for (int j = 0; j < 12; i++) {
+			for (int j = 0; j < 12; j++) {
 				newBox.addDonut(donuts.front());
 				//remove the donut just added 
 				donuts.erase(donuts.begin());
@@ -60,10 +60,8 @@ void Baker::bake_and_box(ORDER &anOrder) {
 //when either order_in_Q.size() > 0 or b_WaiterIsFinished == true
 //hint: wait for something to be in order_in_Q or b_WaiterIsFinished == true
 void Baker::beBaker() {
-	while (!order_in_Q.empty() && !b_WaiterIsFinished) {	//as long as there are orders in order_in_Q
+	while (!order_in_Q.empty()) {	//as long as there are orders in order_in_Q
 		//make sure order_in_Q is not locked (wait on cv_order_inQ)
-		//...
-		cv_order_inQ.wait(mutex_order_inQ);
 
 		unique_lock<mutex> lck(mutex_order_outQ);
 		ORDER currOrder = order_in_Q.front();
@@ -76,7 +74,10 @@ void Baker::beBaker() {
 
 		//remove the first ORDER in the in_Q
 		order_in_Q.pop();
+
+		while (!b_WaiterIsFinished) {
+			unique_lock<mutex> inQ_lock(mutex_order_inQ);
+			cv_order_inQ.wait(inQ_lock);
+		}
 	}
-	//!!! what happens when the baker empties the order_in_Q but the waiter is not done yet? !!!
-	//see 410_Producer_many_consumers on the course website
 }

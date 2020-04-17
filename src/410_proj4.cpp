@@ -114,10 +114,10 @@ void test1andSeveral(string filename) {
 
 int main()
 {
-	string filename = "in1.txt";
+//	string filename = "in1.txt";
 //	string filename = "in2.txt";
-//	string filename = "in3.txt";
-	test1and1(filename);
+	string filename = "in3.txt";
+//	test1and1(filename);
 	test1andSeveral(filename);
 
 	return SUCCESS;
