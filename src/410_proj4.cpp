@@ -84,9 +84,42 @@ void audit_results() {
 	PRINT2("Total orders filled = ", total_orders);
 }
 
+void test1and1(string filename) {
+	thread waiterThread(doWaiter, 0, filename);
+	thread bakerThread(doBaker, 0);
+
+	bakerThread.join();
+	waiterThread.join();
+
+	audit_results();
+}
+
+void test1andSeveral(string filename) {
+	thread waiterThread(doWaiter, 0, filename);
+	thread bakerThread0(doBaker, 0);
+	thread bakerThread1(doBaker, 1);
+	thread bakerThread2(doBaker, 2);
+	thread bakerThread3(doBaker, 3);
+	thread bakerThread4(doBaker, 4);
+
+	bakerThread0.join();
+	bakerThread1.join();
+	bakerThread2.join();
+	bakerThread3.join();
+	bakerThread4.join();
+	waiterThread.join();
+
+	audit_results();
+}
+
 int main()
 {
-	//TODO your code here
+	string filename = "in1.txt";
+//	string filename = "in2.txt";
+//	string filename = "in3.txt";
+	test1and1(filename);
+	test1andSeveral(filename);
+
 	return SUCCESS;
 }
 
