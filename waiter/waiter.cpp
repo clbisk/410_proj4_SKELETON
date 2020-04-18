@@ -8,14 +8,23 @@
 
 using namespace std;
 
-Waiter::Waiter(int id,std::string filename):id(id),myIO(filename){ }
+Waiter::Waiter(int id, std::string filename) :
+		id(id), myIO(filename) {
+}
 
-Waiter::~Waiter(){ }
+Waiter::~Waiter() {
+}
 
 //gets next Order(s) from file_IO
 int Waiter::getNext(ORDER &anOrder) {
 	//myIO will automatically be initialized the first time myIO.getNext() is called
-	return myIO.getNext(anOrder);	//file_IO.getNext() already returns either success if anOrder written with an error, or the right error code
+	return myIO.getNext(anOrder);//file_IO.getNext() already returns either success if anOrder written with an error, or the right error code
+}
+
+//sleep sometimes to try to break things (testing)
+void maybeSleep() {
+	if (rand() % 3 == 0)
+		this_thread::sleep_for(chrono::milliseconds(rand() % 5));
 }
 
 //contains a loop that will get orders from filename one at a time
@@ -35,11 +44,14 @@ void Waiter::beWaiter() {
 		//put into order_in_Q
 		order_in_Q.push(nextOrder);
 
+		//maybeSleep();
+
 		//notify all the bakers there is a new order
 		cv_order_inQ.notify_all();
 
 		//update the next order to run through the loop again
 		nextGotten = getNext(nextOrder);
+
 	}
 
 	{

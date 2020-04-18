@@ -122,10 +122,10 @@ void clearOutVector() {
 
 int main()
 {
-//	string filename = "in1.txt";
-	string filename = "in2.txt";
-//	string filename = "in3.txt";
+	string pooop[3] = {"in1.txt", "in2.txt", "in3.txt"};
+	string filename = "in1.txt";
 	while (true) {
+		filename = pooop[rand() % 3];
 		b_WaiterIsFinished = false;
 		test1and1(filename);
 		clearOutVector();
