@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <vector>
 #include <string>
+#include <chrono>
 
 #include "../includes/box.h"
 #include "../includes/constants.h"
@@ -95,10 +96,12 @@ void test1and1(string filename) {
 }
 
 void test1andSeveral(string filename) {
-	thread waiterThread(doWaiter, 0, filename);
 	thread bakerThread0(doBaker, 0);
 	thread bakerThread1(doBaker, 1);
 	thread bakerThread2(doBaker, 2);
+//	this_thread::sleep_for(chrono::milliseconds(1000));
+	thread waiterThread(doWaiter, 0, filename);
+//	this_thread::sleep_for(chrono::milliseconds(1000));
 	thread bakerThread3(doBaker, 3);
 	thread bakerThread4(doBaker, 4);
 
@@ -112,13 +115,25 @@ void test1andSeveral(string filename) {
 	audit_results();
 }
 
+void clearOutVector() {
+	unique_lock<mutex> inQ_lock(mutex_order_inQ);
+	order_out_Vector.clear();
+}
+
 int main()
 {
 //	string filename = "in1.txt";
-//	string filename = "in2.txt";
-	string filename = "in3.txt";
-//	test1and1(filename);
-	test1andSeveral(filename);
+	string filename = "in2.txt";
+//	string filename = "in3.txt";
+	while (true) {
+		b_WaiterIsFinished = false;
+		test1and1(filename);
+		clearOutVector();
+
+		b_WaiterIsFinished = false;
+		test1andSeveral(filename);
+		clearOutVector();
+	}
 
 	return SUCCESS;
 }

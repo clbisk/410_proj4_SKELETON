@@ -16,8 +16,7 @@ Baker::~Baker() { }
 //1 with 12 donuts, 1 with 1 donut
 void Baker::bake_and_box(ORDER &anOrder) {
 	//bake the donuts: create a Donut object for number_donuts 
-	//(I recommend storing them in a vector for the next step)
-	//...
+	//(I recommend storing them in a vector for the next step) -- Cecilia
 	int numDonuts = anOrder.number_donuts;
 	vector<DONUT> donuts(numDonuts);
 	
@@ -27,7 +26,6 @@ void Baker::bake_and_box(ORDER &anOrder) {
 		Box newBox = Box();
 
 		//add 12 Donuts, or until you are out of baked Donuts
-		//...
 		if (donutsLeft < 12) {
 			//add donutsLeft to the box
 			for (int j = 0; j < donutsLeft; j++) {
@@ -60,24 +58,63 @@ void Baker::bake_and_box(ORDER &anOrder) {
 //when either order_in_Q.size() > 0 or b_WaiterIsFinished == true
 //hint: wait for something to be in order_in_Q or b_WaiterIsFinished == true
 void Baker::beBaker() {
-	while (!order_in_Q.empty()) {	//as long as there are orders in order_in_Q
-		//make sure order_in_Q is not locked (wait on cv_order_inQ)
+//	cout << "hello baker starting" << endl;
 
-		unique_lock<mutex> lck(mutex_order_outQ);
-		ORDER currOrder = order_in_Q.front();
+	{
+		//get the lock for checking b_waiterIsFinished so it isn't being read and written simultaneously
+		unique_lock<mutex> inQ_lock(mutex_order_inQ);
 
-		//bake Donuts and fill them into Boxes
-		bake_and_box(currOrder);
-
-		//next add the order to the outVector
-		order_out_Vector.push_back(currOrder);
-
-		//remove the first ORDER in the in_Q
-		order_in_Q.pop();
-
-		while (!b_WaiterIsFinished) {
-			unique_lock<mutex> inQ_lock(mutex_order_inQ);
+		if (!b_WaiterIsFinished) {
+			//wait until the waiter is done touching the queue before we try to read it
 			cv_order_inQ.wait(inQ_lock);
 		}
 	}
+
+	while (true) {
+		ORDER currOrder = ORDER();
+
+		//if there's something to bake, bake it
+		{
+			//get the lock for checking the order_in_Q so it isn't being read and written simultaneously
+			unique_lock<mutex> inQ_lock(mutex_order_inQ);
+
+			if (!order_in_Q.empty()) {
+				currOrder = order_in_Q.front();
+
+				//remove the first ORDER in the in_Q
+				order_in_Q.pop();
+			}
+		}
+
+		//if we just got an order from in_Q, fill it and add it to the out_Q
+		//(doesn't need to be protected by the previous inQ_lock)
+		if (currOrder.order_number != UNINITIALIZED) {
+			//bake Donuts and fill them into Boxes
+			bake_and_box(currOrder);
+
+			//nobody touch my out queue
+			lock_guard<mutex> lock(mutex_order_outQ);
+
+			//next add the order to the outVector
+			order_out_Vector.push_back(currOrder);
+		}
+
+		{
+			//get the lock for checking b_waiterIsFinished so it isn't being read and written simultaneously
+			//also protects checking if in_Q is empty
+			unique_lock<mutex> inQ_lock(mutex_order_inQ);
+
+			//don't exit unless we're sure the waiter has read all the orders
+			if (!b_WaiterIsFinished) {
+				//if it wasn't done, wait for one more
+				cv_order_inQ.wait(inQ_lock);
+				//now we have something in order_in_Q so we can loop
+
+			} else if (order_in_Q.empty()) {
+				//the waiter is done and the queue is empty; I can clock out
+				break;
+			}
+		}
+	}
+//	cout << "bye bye baker" << endl;
 }

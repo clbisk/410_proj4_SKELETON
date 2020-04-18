@@ -1,4 +1,6 @@
 #include <string>
+#include <chrono>
+#include <thread>
 #include "stdlib.h"
 
 #include "../includes/waiter.h"
@@ -22,6 +24,8 @@ int Waiter::getNext(ORDER &anOrder) {
 //when finished exits loop and signals baker(s) using cv_order_inQ that
 //it is done using b_WaiterIsFinished
 void Waiter::beWaiter() {
+//	cout << "hello waiter starting" << endl;
+
 	//while a next order can be successfully gotten
 	ORDER nextOrder = ORDER();
 	int nextGotten = getNext(nextOrder);
@@ -38,6 +42,13 @@ void Waiter::beWaiter() {
 		nextGotten = getNext(nextOrder);
 	}
 
-	//signal that it is done taking orders
-	b_WaiterIsFinished = true;
+	{
+		unique_lock<mutex> lck(mutex_order_inQ);
+		//signal that it is done taking orders
+		b_WaiterIsFinished = true;
+		//one last notify in case someone started between the loop ending and the bool changing
+		cv_order_inQ.notify_all();
+	}
+
+//	cout << "goodbye waiter" << endl;
 }

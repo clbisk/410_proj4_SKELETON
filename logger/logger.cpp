@@ -6,6 +6,10 @@ Logger::Logger(std::string filename) {
 }
 
 Logger::~Logger() {
+	//close file if something happened while the file was still open
+	lock_guard<mutex> lock(m);
+	if (myFile.is_open())
+		myFile.close();
 }
 
 //open close and clear the log file
